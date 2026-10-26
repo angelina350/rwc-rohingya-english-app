@@ -32,7 +32,7 @@ export function Orb({ active, size = 168 }: { active: boolean; size?: number }) 
       ]}
     >
       <LinearGradient
-        colors={['#FFFFFF', '#D5E4FF', '#A9C3F8']}
+        colors={[colors.surface, colors.primarySoft, colors.sageDeep]}
         start={{ x: 0.2, y: 0.05 }}
         end={{ x: 0.85, y: 1 }}
         style={{ width: size, height: size, borderRadius: size / 2 }}
@@ -51,14 +51,14 @@ const styles = StyleSheet.create({
   halo: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.22)',
+    backgroundColor: colors.glass,
     borderWidth: 1,
     borderColor: colors.glassBorder,
   },
   gloss: {
     position: 'absolute',
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    backgroundColor: colors.surfaceOverlay,
     transform: [{ rotate: '-25deg' }],
   },
 });

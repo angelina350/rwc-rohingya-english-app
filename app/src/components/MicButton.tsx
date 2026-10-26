@@ -8,9 +8,18 @@ interface Props {
   onPress: () => void;
   size?: number;
   disabled?: boolean;
+  color?: string;
+  recordingColor?: string;
 }
 
-export function MicButton({ recording, onPress, size = 88, disabled }: Props) {
+export function MicButton({
+  recording,
+  onPress,
+  size = 88,
+  disabled,
+  color = colors.primary,
+  recordingColor = colors.recording,
+}: Props) {
   const pulse = useState(() => new Animated.Value(0))[0];
 
   // Pulse only while recording (a response to the user's tap), on the native driver.
@@ -36,7 +45,11 @@ export function MicButton({ recording, onPress, size = 88, disabled }: Props) {
       {recording && (
         <Animated.View
           pointerEvents="none"
-          style={[styles.ring, { borderRadius: size / 2 }, ringStyle]}
+          style={[
+            styles.ring,
+            { borderRadius: size / 2, backgroundColor: recordingColor },
+            ringStyle,
+          ]}
         />
       )}
       <Pressable
@@ -47,13 +60,17 @@ export function MicButton({ recording, onPress, size = 88, disabled }: Props) {
         disabled={disabled}
         style={({ pressed }) => [
           styles.btn,
-          { width: size, height: size, borderRadius: size / 2 },
-          recording && styles.recording,
+          { width: size, height: size, borderRadius: size / 2, backgroundColor: color },
+          recording && { backgroundColor: recordingColor },
           pressed && { transform: [{ scale: 0.95 }] },
           disabled && { opacity: 0.5 },
         ]}
       >
-        <Ionicons name={recording ? 'stop' : 'mic'} size={size * 0.42} color="#FFFFFF" />
+        <Ionicons
+          name={recording ? 'stop' : 'mic'}
+          size={size * 0.42}
+          color={colors.textOnPrimary}
+        />
       </Pressable>
     </View>
   );
@@ -65,9 +82,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: 'rgba(255,255,255,0.7)',
+    borderColor: colors.glassBorder,
     ...shadow.glow,
   },
-  recording: { backgroundColor: colors.recording },
-  ring: { ...StyleSheet.absoluteFill, backgroundColor: colors.recording },
+  ring: { ...StyleSheet.absoluteFill },
 });

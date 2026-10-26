@@ -1,5 +1,5 @@
-// System font for now. Pick a family with Hanifi Rohingya coverage before loading one.
-// Scale is capped at 4 sizes / 2 weights to keep hierarchy obvious.
+// Use the platform's native system font consistently; it retains script fallback
+// support while the app's sizes and weights provide a shared type scale.
 export const fonts = {
   size: { sm: 14, md: 16, lg: 22, xl: 32 },
   weight: { regular: '400', bold: '700' },

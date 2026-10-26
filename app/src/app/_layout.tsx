@@ -20,7 +20,7 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
 export default function RootLayout() {
   return (
     <AppStateProvider>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="word/[id]" options={{ animation: 'slide_from_bottom' }} />
       </Stack>
@@ -45,5 +45,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  retryText: { color: '#FFFFFF', fontSize: fonts.size.md, fontWeight: fonts.weight.bold },
+  retryText: {
+    color: colors.textOnPrimary,
+    fontSize: fonts.size.md,
+    fontWeight: fonts.weight.bold,
+  },
 });

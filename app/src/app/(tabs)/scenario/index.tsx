@@ -4,38 +4,37 @@ import { useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/api/client';
-import type { Category, Scenario } from '@/api/types';
+import type { Category, Word } from '@/api/types';
 import { categoryIcon } from '@/components/categoryIcon';
 import { GradientScreen } from '@/components/GradientScreen';
-import { ProgressBar } from '@/components/ProgressBar';
 import { Sheet } from '@/components/Sheet';
-import { useAppState } from '@/state/AppState';
 import { colors, fonts, radius, shadow, spacing, TAB_BAR_SPACE } from '@/theme';
 
-/** Landing: pick a situation (category) before choosing a specific scenario. */
+/** Landing: choose a topic to browse its quick phrases. */
 export default function ScenarioLanding() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { progress } = useAppState();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const [words, setWords] = useState<Word[]>([]);
 
   useEffect(() => {
     api.getCategories().then(setCategories);
-    api.getScenarios().then(setScenarios);
+    api.getWords().then(setWords);
   }, []);
 
-  const withScenarios = categories.filter((c) => scenarios.some((s) => s.categoryId === c.id));
+  const withPhrases = categories.filter((category) =>
+    words.some((word) => word.categoryId === category.id),
+  );
 
   return (
     <GradientScreen>
       <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
-        <Text style={styles.title}>Practice a situation</Text>
-        <Text style={styles.sub}>Pick a topic, then talk it through.</Text>
+        <Text style={styles.title}>Quick phrases</Text>
+        <Text style={styles.sub}>Choose a topic to browse useful phrases.</Text>
       </View>
       <Sheet>
         <FlatList
-          data={withScenarios}
+          data={withPhrases}
           numColumns={2}
           keyExtractor={(c) => c.id}
           contentContainerStyle={[
@@ -43,13 +42,11 @@ export default function ScenarioLanding() {
             { paddingBottom: insets.bottom + TAB_BAR_SPACE + spacing.xl },
           ]}
           renderItem={({ item }) => {
-            const total = scenarios.filter((s) => s.categoryId === item.id).length;
-            const done =
-              progress?.categories.find((c) => c.categoryId === item.id)?.scenariosDone ?? 0;
+            const total = words.filter((word) => word.categoryId === item.id).length;
             return (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`${item.name}, ${done} of ${total} scenarios done`}
+                accessibilityLabel={`${item.name}, ${total} quick phrases`}
                 onPress={() => router.push(`/scenario/category/${item.id}`)}
                 style={({ pressed }) => [styles.card, pressed && { opacity: 0.92 }]}
               >
@@ -58,9 +55,8 @@ export default function ScenarioLanding() {
                 </View>
                 <Text style={styles.name}>{item.name}</Text>
                 <Text style={styles.meta}>
-                  {total} {total === 1 ? 'scenario' : 'scenarios'}
+                  {total} {total === 1 ? 'phrase' : 'phrases'}
                 </Text>
-                <ProgressBar value={total ? done / total : 0} />
               </Pressable>
             );
           }}
@@ -72,8 +68,8 @@ export default function ScenarioLanding() {
 
 const styles = StyleSheet.create({
   header: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xl, gap: spacing.sm },
-  title: { fontSize: fonts.size.xl, fontWeight: fonts.weight.bold, color: '#FFFFFF' },
-  sub: { fontSize: fonts.size.lg, fontWeight: fonts.weight.bold, color: '#FFFFFF', opacity: 0.9 },
+  title: { fontSize: fonts.size.xl, fontWeight: fonts.weight.regular, color: colors.text },
+  sub: { fontSize: fonts.size.md, color: colors.textMuted },
   grid: { padding: spacing.md, paddingTop: spacing.xl },
   card: {
     flex: 1,

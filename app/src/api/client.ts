@@ -8,6 +8,7 @@ import type {
   ProgressUpdate,
   Scenario,
   ScenarioFeedback,
+  SavedTranslation,
   TranslateResult,
   Word,
 } from './types';
@@ -25,6 +26,7 @@ const delay = <T>(value: T, ms = 300): Promise<T> =>
 
 interface Db {
   saved: string[];
+  savedTranslations: SavedTranslation[];
   wordScores: Record<string, number>;
   latestScore: number | null;
   completedScenarios: string[];
@@ -33,6 +35,7 @@ interface Db {
 const DB_KEY = 'rwc.mock.db.v1';
 const emptyDb = (): Db => ({
   saved: [],
+  savedTranslations: [],
   wordScores: {},
   latestScore: null,
   completedScenarios: [],
@@ -41,9 +44,8 @@ const emptyDb = (): Db => ({
 let dbPromise: Promise<Db> | null = null;
 const loadDb = (): Promise<Db> =>
   (dbPromise ??= AsyncStorage.getItem(DB_KEY)
-    .then((raw): Db => (raw ? { ...emptyDb(), ...JSON.parse(raw) } : emptyDb()))
-    .catch(emptyDb));
-const persist = (db: Db) => AsyncStorage.setItem(DB_KEY, JSON.stringify(db)).catch(() => {});
+    .then((raw): Db => (raw ? { ...emptyDb(), ...JSON.parse(raw) } : emptyDb())));
+const persist = (db: Db) => AsyncStorage.setItem(DB_KEY, JSON.stringify(db));
 
 function summarize(db: Db): ProgressSummary {
   // Ignore ids saved by older mock data (e.g. removed words/scenarios).
@@ -175,6 +177,29 @@ export const api = {
 
   /** Not in the backend draft yet: saved words. */
   getSavedWordIds: async (): Promise<string[]> => [...(await loadDb()).saved],
+
+  getSavedTranslations: async (): Promise<SavedTranslation[]> =>
+    [...(await loadDb()).savedTranslations].sort((a, b) => b.savedAt - a.savedAt),
+
+  saveTranslation: async (
+    translation: Omit<SavedTranslation, 'id' | 'savedAt'>,
+  ): Promise<SavedTranslation> => {
+    const db = await loadDb();
+    const item: SavedTranslation = {
+      ...translation,
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      savedAt: Date.now(),
+    };
+    db.savedTranslations = [item, ...db.savedTranslations];
+    await persist(db);
+    return item;
+  },
+
+  removeSavedTranslation: async (id: string): Promise<void> => {
+    const db = await loadDb();
+    db.savedTranslations = db.savedTranslations.filter((item) => item.id !== id);
+    await persist(db);
+  },
 
   setWordSaved: async (wordId: string, saved: boolean): Promise<void> => {
     const db = await loadDb();

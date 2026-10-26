@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs + 2,
     borderRadius: radius.pill,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   dot: { width: 10, height: 10, borderRadius: 5 },
   text: { color: colors.text, fontSize: fonts.size.sm, fontWeight: fonts.weight.bold },

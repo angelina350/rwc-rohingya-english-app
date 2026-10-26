@@ -1,10 +1,15 @@
-// Light blue + white. Text on the gradient is white and large/bold only (>=3:1);
-// all small text sits on white surfaces in navy.
 export const colors = {
   sky: ['#8DB8F7', '#6A8CEB'] as const,
   primary: '#4C6FE6',
   primaryDark: '#3452C4',
   primarySoft: '#E6EEFF',
+  accent: '#4C6FE6',
+  accentSoft: '#E6EEFF',
+  accentBorder: '#DCE6FA',
+  directionOrange: '#E58A2E',
+  directionOrangeSoft: '#FFF0DB',
+  directionOrangeBorder: '#F3C58F',
+  sageDeep: '#8DB8F7',
   background: '#EEF4FF',
   surface: '#FFFFFF',
   border: '#DCE6FA',
@@ -13,8 +18,10 @@ export const colors = {
   textOnPrimary: '#FFFFFF',
   glass: 'rgba(255,255,255,0.28)',
   glassBorder: 'rgba(255,255,255,0.55)',
+  surfaceOverlay: 'rgba(255,255,255,0.8)',
   shadow: '#3B5BC9',
   recording: '#E5484D',
+  recordingSoft: '#FCEBEC',
   danger: '#D64545',
   confidenceHigh: '#2E9E6B',
   confidenceMid: '#E0A030',

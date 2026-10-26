@@ -36,7 +36,7 @@ export function FloatingTabBar({ state, descriptors, emitter, navigateToTab }: B
             >
               {options.tabBarIcon?.({
                 focused,
-                color: focused ? '#FFFFFF' : colors.primary,
+                color: focused ? colors.textOnPrimary : colors.primary,
                 size: 24,
               })}
               {focused && <Text style={styles.label}>{label}</Text>}
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     padding: spacing.xs,
     borderRadius: radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.94)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.glassBorder,
     ...shadow.card,
@@ -71,5 +71,5 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   itemActive: { backgroundColor: colors.primary, paddingHorizontal: spacing.lg },
-  label: { color: '#FFFFFF', fontSize: fonts.size.sm, fontWeight: fonts.weight.bold },
+  label: { color: colors.textOnPrimary, fontSize: fonts.size.sm, fontWeight: fonts.weight.bold },
 });

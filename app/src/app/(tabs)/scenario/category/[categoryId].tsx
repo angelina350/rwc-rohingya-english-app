@@ -4,67 +4,67 @@ import { useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/api/client';
-import type { Category, Scenario } from '@/api/types';
+import type { Category, Word } from '@/api/types';
 import { BackButton } from '@/components/BackButton';
 import { GradientScreen } from '@/components/GradientScreen';
 import { Sheet } from '@/components/Sheet';
-import { useAppState } from '@/state/AppState';
+import { usePlayAudio } from '@/hooks/usePlayAudio';
 import { colors, fonts, radius, spacing, TAB_BAR_SPACE } from '@/theme';
 
 export default function ScenarioCategory() {
   const { categoryId } = useLocalSearchParams<{ categoryId: string }>();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { progress } = useAppState();
   const [category, setCategory] = useState<Category | null>(null);
-  const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const [phrases, setPhrases] = useState<Word[]>([]);
+  const play = usePlayAudio();
 
   useEffect(() => {
     api.getCategories().then((all) => setCategory(all.find((c) => c.id === categoryId) ?? null));
-    api.getScenarios(categoryId).then(setScenarios);
+    api.getWords({ categoryId }).then(setPhrases);
   }, [categoryId]);
 
   return (
     <GradientScreen>
       <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
         <BackButton fallback="/scenario" />
-        <Text style={styles.title}>{category?.name ?? 'Scenarios'}</Text>
+        <Text style={styles.title}>{category?.name ?? 'Quick phrases'}</Text>
         {category && <Text style={styles.sub}>{category.description}</Text>}
       </View>
       <Sheet>
         <FlatList
-          data={scenarios}
-          keyExtractor={(s) => s.id}
+          data={phrases}
+          keyExtractor={(word) => word.id}
           contentContainerStyle={[
             styles.list,
             { paddingBottom: insets.bottom + TAB_BAR_SPACE + spacing.xl },
           ]}
-          renderItem={({ item }) => {
-            const done = progress?.completedScenarioIds.includes(item.id);
-            return (
+          ListEmptyComponent={
+            <Text style={styles.empty}>No quick phrases are available for this topic yet.</Text>
+          }
+          renderItem={({ item }) => (
+            <View style={styles.row}>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`${item.title}${done ? ', completed' : ''}`}
-                onPress={() => router.push(`/scenario/${item.id}`)}
-                style={({ pressed }) => [styles.row, pressed && { opacity: 0.92 }]}
+                accessibilityLabel={`Practice ${item.english}`}
+                onPress={() => router.push(`/word/${item.id}`)}
+                style={styles.phrase}
               >
-                <View style={[styles.badge, done && styles.badgeDone]}>
-                  <Ionicons
-                    name={done ? 'checkmark' : 'chatbubble-ellipses'}
-                    size={24}
-                    color={done ? '#FFFFFF' : colors.primary}
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.name}>{item.title}</Text>
-                  <Text style={styles.meta}>
-                    {item.turns.length} steps{done ? '  ·  Completed' : ''}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={22} color={colors.textMuted} />
+                <Text style={styles.name}>{item.english}</Text>
+                <Text style={styles.translation}>
+                  {item.rohingya ?? item.rohingyalish ?? 'Translation not available'}
+                </Text>
               </Pressable>
-            );
-          }}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Play ${item.english}`}
+                onPress={() => play({ url: item.audioUrl, fallbackText: item.english })}
+                style={({ pressed }) => [styles.play, pressed && { opacity: 0.8 }]}
+              >
+                <Ionicons name="volume-high" size={22} color={colors.primary} />
+              </Pressable>
+            </View>
+          )}
         />
       </Sheet>
     </GradientScreen>
@@ -78,28 +78,34 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     alignItems: 'flex-start',
   },
-  title: { fontSize: fonts.size.xl, fontWeight: fonts.weight.bold, color: '#FFFFFF' },
-  sub: { fontSize: fonts.size.lg, fontWeight: fonts.weight.bold, color: '#FFFFFF', opacity: 0.9 },
+  title: { fontSize: fonts.size.xl, fontWeight: fonts.weight.regular, color: colors.text },
+  sub: { fontSize: fonts.size.md, color: colors.textMuted },
   list: { padding: spacing.xl, gap: spacing.md },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.lg,
+    gap: spacing.md,
     padding: spacing.lg,
     borderRadius: radius.md,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  badge: {
+  phrase: { flex: 1, gap: spacing.xs },
+  name: { fontSize: fonts.size.md, fontWeight: fonts.weight.bold, color: colors.text },
+  translation: { fontSize: fonts.size.sm, color: colors.textMuted },
+  play: {
     width: 48,
     height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.primarySoft,
+    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.primarySoft,
   },
-  badgeDone: { backgroundColor: colors.confidenceHigh },
-  name: { fontSize: fonts.size.md, fontWeight: fonts.weight.bold, color: colors.text },
-  meta: { fontSize: fonts.size.sm, color: colors.textMuted },
+  empty: {
+    marginTop: spacing.xxl,
+    color: colors.textMuted,
+    fontSize: fonts.size.md,
+    textAlign: 'center',
+  },
 });

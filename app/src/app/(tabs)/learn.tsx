@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/api/client';
-import type { Word } from '@/api/types';
+import type { Scenario, Word } from '@/api/types';
 import { categoryIcon } from '@/components/categoryIcon';
 import { GradientScreen } from '@/components/GradientScreen';
 import { ProgressBar } from '@/components/ProgressBar';
@@ -15,14 +15,21 @@ import { colors, fonts, radius, shadow, spacing, TAB_BAR_SPACE } from '@/theme';
 export default function LearnScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { progress, saved } = useAppState();
+  const { progress } = useAppState();
   const [next, setNext] = useState<Word | null>(null);
+  const [words, setWords] = useState<Word[]>([]);
+  const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const practiced = progress?.wordsPracticed;
 
   // Re-fetch the suggestion whenever practice progress changes.
   useEffect(() => {
     api.getNextWord().then(setNext);
   }, [practiced]);
+
+  useEffect(() => {
+    api.getWords().then(setWords);
+    api.getScenarios().then(setScenarios);
+  }, []);
 
   const total = progress?.wordsTotal ?? 0;
   const pct = total ? (progress?.wordsPracticed ?? 0) / total : 0;
@@ -35,7 +42,7 @@ export default function LearnScreen() {
         <Text style={styles.sub}>
           {progress?.wordsPracticed ?? 0} of {total} words practiced
         </Text>
-        <ProgressBar value={pct} onGradient />
+        <ProgressBar value={pct} />
       </View>
 
       <Sheet>
@@ -56,7 +63,7 @@ export default function LearnScreen() {
                 <Text style={styles.nextLabel}>Up next</Text>
                 <Text style={styles.nextWord}>{next.english}</Text>
               </View>
-              <Ionicons name="mic-circle" size={48} color="#FFFFFF" />
+              <Ionicons name="mic-circle" size={48} color={colors.accent} />
             </Pressable>
           ) : (
             progress && (
@@ -69,34 +76,89 @@ export default function LearnScreen() {
 
           <View style={styles.tiles}>
             <Tile
-              icon="bookmark"
-              value={saved.size}
-              label="Saved words"
-              onPress={() => router.navigate({ pathname: '/words', params: { category: 'saved' } })}
-            />
-            <Tile
               icon="chatbubbles"
               value={`${progress?.scenariosCompleted ?? 0}/${progress?.scenariosTotal ?? 0}`}
               label="Scenarios done"
-              onPress={() => router.navigate('/scenario')}
             />
             <Tile icon="ribbon" value={progress?.latestScore ?? '–'} label="Latest score" />
           </View>
 
-          <Text style={styles.section}>By topic</Text>
+          <Text style={styles.section}>Phrases</Text>
+          {progress?.categories.map((category) => {
+            const categoryWords = words.filter((word) => word.categoryId === category.categoryId);
+            if (!categoryWords.length) return null;
+            return (
+              <View key={`phrases-${category.categoryId}`} style={styles.group}>
+                <View style={styles.groupHeading}>
+                  <Ionicons
+                    name={categoryIcon(category.categoryId)}
+                    size={20}
+                    color={colors.primary}
+                  />
+                  <Text style={styles.topicName}>{category.name}</Text>
+                </View>
+                {categoryWords.map((word) => (
+                  <Pressable
+                    key={word.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Practice ${word.english}`}
+                    onPress={() => router.push(`/word/${word.id}`)}
+                    style={({ pressed }) => [styles.phrase, pressed && { opacity: 0.9 }]}
+                  >
+                    <View style={styles.phraseText}>
+                      <Text style={styles.phraseEnglish}>{word.english}</Text>
+                      <Text style={styles.topicMeta}>
+                        {word.rohingya ?? word.rohingyalish ?? 'Translation not available'}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+                  </Pressable>
+                ))}
+              </View>
+            );
+          })}
+
+          <Text style={styles.section}>Scenarios</Text>
+          {progress?.categories.map((category) => {
+            const categoryScenarios = scenarios.filter(
+              (scenario) => scenario.categoryId === category.categoryId,
+            );
+            if (!categoryScenarios.length) return null;
+            return (
+              <View key={`scenarios-${category.categoryId}`} style={styles.group}>
+                <View style={styles.groupHeading}>
+                  <Ionicons
+                    name={categoryIcon(category.categoryId)}
+                    size={20}
+                    color={colors.primary}
+                  />
+                  <Text style={styles.topicName}>{category.name}</Text>
+                </View>
+                {categoryScenarios.map((scenario) => (
+                  <Pressable
+                    key={scenario.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Practice scenario: ${scenario.title}`}
+                    onPress={() => router.push(`/scenario/${scenario.id}`)}
+                    style={({ pressed }) => [styles.phrase, pressed && { opacity: 0.9 }]}
+                  >
+                    <View style={styles.phraseText}>
+                      <Text style={styles.phraseEnglish}>{scenario.title}</Text>
+                      <Text style={styles.topicMeta}>{scenario.turns.length} conversation turns</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+                  </Pressable>
+                ))}
+              </View>
+            );
+          })}
+
+          <Text style={styles.section}>Progress by topic</Text>
           {progress?.categories.map((c) => {
             const done = c.wordsPracticed + c.scenariosDone;
             const all = c.wordsTotal + c.scenariosTotal;
             return (
-              <Pressable
-                key={c.categoryId}
-                accessibilityRole="button"
-                accessibilityLabel={`${c.name}: ${done} of ${all} done`}
-                onPress={() =>
-                  router.navigate({ pathname: '/words', params: { category: c.categoryId } })
-                }
-                style={styles.topic}
-              >
+              <View key={c.categoryId} style={styles.topic}>
                 <View style={styles.topicIcon}>
                   <Ionicons name={categoryIcon(c.categoryId)} size={24} color={colors.primary} />
                 </View>
@@ -110,7 +172,7 @@ export default function LearnScreen() {
                       : ''}
                   </Text>
                 </View>
-              </Pressable>
+              </View>
             );
           })}
         </ScrollView>
@@ -123,42 +185,33 @@ function Tile({
   icon,
   value,
   label,
-  onPress,
 }: {
   icon: React.ComponentProps<typeof Ionicons>['name'];
   value: string | number;
   label: string;
-  onPress?: () => void;
 }) {
   return (
-    <Pressable
-      accessibilityRole={onPress ? 'button' : 'text'}
-      accessibilityLabel={`${label}: ${value}`}
-      onPress={onPress}
-      disabled={!onPress}
-      style={styles.tile}
-    >
+    <View accessibilityLabel={`${label}: ${value}`} style={styles.tile}>
       <Ionicons name={icon} size={22} color={colors.primary} />
       <Text style={styles.tileValue}>{value}</Text>
       <Text style={styles.tileLabel}>{label}</Text>
-    </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   header: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xl, gap: spacing.sm },
-  title: { fontSize: fonts.size.xl, fontWeight: fonts.weight.bold, color: '#FFFFFF' },
+  title: { fontSize: fonts.size.xl, fontWeight: fonts.weight.regular, color: colors.text },
   bigPct: {
     fontSize: fonts.size.xl,
     fontWeight: fonts.weight.bold,
-    color: '#FFFFFF',
+    color: colors.text,
     marginTop: spacing.sm,
   },
   sub: {
     fontSize: fonts.size.lg,
     fontWeight: fonts.weight.bold,
-    color: '#FFFFFF',
-    opacity: 0.9,
+    color: colors.textMuted,
     marginBottom: spacing.xs,
   },
   content: { padding: spacing.xl, gap: spacing.lg },
@@ -168,10 +221,10 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     borderRadius: radius.lg,
     backgroundColor: colors.primary,
-    ...shadow.glow,
+    ...shadow.card,
   },
-  nextLabel: { fontSize: fonts.size.sm, color: '#FFFFFF', opacity: 0.85 },
-  nextWord: { fontSize: fonts.size.lg, fontWeight: fonts.weight.bold, color: '#FFFFFF' },
+  nextLabel: { fontSize: fonts.size.sm, color: colors.textOnPrimary, opacity: 0.85 },
+  nextWord: { fontSize: fonts.size.lg, fontWeight: fonts.weight.bold, color: colors.textOnPrimary },
   done: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -198,6 +251,20 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginTop: spacing.sm,
   },
+  group: { gap: spacing.sm },
+  groupHeading: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  phrase: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  phraseText: { flex: 1, gap: spacing.xs },
+  phraseEnglish: { fontSize: fonts.size.md, fontWeight: fonts.weight.bold, color: colors.text },
   topic: {
     flexDirection: 'row',
     alignItems: 'center',

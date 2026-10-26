@@ -3,8 +3,7 @@ import { Image } from 'expo-image';
 import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Word } from '@/api/types';
-import { colors, fonts, radius, shadow, spacing } from '@/theme';
-import { IconButton } from './IconButton';
+import { colors, fonts, radius, spacing } from '@/theme';
 
 export interface WordItemProps {
   word: Word;
@@ -18,6 +17,13 @@ export interface WordItemProps {
 
 const rohingyaText = (w: Word) => w.rohingya ?? w.rohingyalish ?? 'Not translated yet';
 
+const wordColors = {
+  green: colors.primary,
+  muted: colors.textMuted,
+  sage: colors.primarySoft,
+  border: colors.border,
+} as const;
+
 function Thumb({ word, size }: { word: Word; size: number }) {
   return word.imageUrl ? (
     <Image
@@ -30,62 +36,39 @@ function Thumb({ word, size }: { word: Word; size: number }) {
       accessibilityLabel={word.english}
     />
   ) : (
-    <View style={[styles.thumb, { width: size, height: size, borderRadius: size / 2 }]}>
-      <Ionicons name="image-outline" size={size * 0.4} color={colors.primary} />
+    <View
+      style={[styles.thumb, { width: size, height: size, borderRadius: size / 2 }]}
+    >
+      <Ionicons name="image-outline" size={size * 0.4} color={wordColors.green} />
     </View>
   );
 }
 
-function PracticePill({ score }: { score?: number }) {
-  const done = score !== undefined;
+function WordAction({
+  name,
+  label,
+  onPress,
+  selected = false,
+}: {
+  name: React.ComponentProps<typeof Ionicons>['name'];
+  label: string;
+  onPress: () => void;
+  selected?: boolean;
+}) {
   return (
-    <View style={[styles.pill, done && styles.pillDone]}>
-      <Ionicons
-        name={done ? 'checkmark-circle' : 'mic'}
-        size={18}
-        color={done ? colors.confidenceHigh : colors.primary}
-      />
-      <Text style={[styles.pillText, done && { color: colors.text }]}>
-        {done ? `Best ${score}` : 'Practice'}
-      </Text>
-    </View>
-  );
-}
-
-// Open-area Pressables and IconButtons are siblings, never nested: on web each renders
-// as a <button>, and nested buttons are invalid HTML (React warns / breaks hydration).
-function WordCardBase({ word, saved, score, onToggleSave, onPlay, onOpen }: WordItemProps) {
-  const open = () => onOpen(word);
-  const openLabel = `Practice saying ${word.english}`;
-  return (
-    <View style={styles.card}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={openLabel}
-        onPress={open}
-        style={({ pressed }) => [styles.openArea, pressed && { opacity: 0.85 }]}
-      >
-        <Thumb word={word} size={88} />
-        <Text style={styles.rohingya}>{rohingyaText(word)}</Text>
-        <Text style={styles.english}>{word.english}</Text>
-      </Pressable>
-      <View style={styles.actions}>
-        <IconButton
-          name="volume-high"
-          label={`Play ${word.english}`}
-          onPress={() => onPlay(word)}
-        />
-        <IconButton
-          name={saved ? 'bookmark' : 'bookmark-outline'}
-          label={saved ? `Unsave ${word.english}` : `Save ${word.english}`}
-          active={saved}
-          onPress={() => onToggleSave(word.id)}
-        />
-      </View>
-      <Pressable accessibilityRole="button" accessibilityLabel={openLabel} onPress={open}>
-        <PracticePill score={score} />
-      </Pressable>
-    </View>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.action,
+        selected && styles.actionSelected,
+        pressed && { opacity: 0.8 },
+      ]}
+    >
+      <Ionicons name={name} size={22} color={selected ? colors.textOnPrimary : wordColors.green} />
+    </Pressable>
   );
 }
 
@@ -107,72 +90,54 @@ function WordRowBase({ word, saved, score, onToggleSave, onPlay, onOpen }: WordI
           </Text>
         </View>
       </Pressable>
-      <IconButton
+      <WordAction
         name="volume-high"
         label={`Play ${word.english}`}
         onPress={() => onPlay(word)}
-        size={22}
       />
-      <IconButton
+      <WordAction
         name={saved ? 'bookmark' : 'bookmark-outline'}
         label={saved ? `Unsave ${word.english}` : `Save ${word.english}`}
-        active={saved}
+        selected={saved}
         onPress={() => onToggleSave(word.id)}
-        size={22}
       />
     </View>
   );
 }
 
 // Memoized: with stable callbacks, toggling one word re-renders only that item.
-export const WordCard = memo(WordCardBase);
 export const WordRow = memo(WordRowBase);
 
 const styles = StyleSheet.create({
-  card: {
-    flex: 1,
-    margin: spacing.sm,
-    padding: spacing.lg,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    gap: spacing.xs,
-    ...shadow.card,
-  },
-  openArea: { alignItems: 'center', gap: spacing.xs, alignSelf: 'stretch' },
-  thumb: { backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
-  rohingya: {
-    fontSize: fonts.size.lg,
-    fontWeight: fonts.weight.bold,
-    color: colors.text,
-    textAlign: 'center',
-    marginTop: spacing.sm,
-  },
-  english: { fontSize: fonts.size.md, color: colors.textMuted },
-  actions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginTop: spacing.sm,
-    minHeight: 36,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primarySoft,
-  },
-  pillDone: { backgroundColor: '#E3F6EC' },
-  pillText: { fontSize: fonts.size.sm, fontWeight: fonts.weight.bold, color: colors.primary },
+  thumb: { backgroundColor: wordColors.sage, alignItems: 'center', justifyContent: 'center' },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    borderBottomWidth: 0,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: wordColors.border,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 1,
   },
   rowOpen: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   rowText: { flex: 1 },
-  rowRohingya: { fontSize: fonts.size.md, fontWeight: fonts.weight.bold, color: colors.text },
-  rowEnglish: { fontSize: fonts.size.sm, color: colors.textMuted },
+  rowRohingya: { fontSize: fonts.size.md, fontWeight: fonts.weight.bold, color: wordColors.green },
+  rowEnglish: { fontSize: fonts.size.sm, color: wordColors.muted },
+  action: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: wordColors.sage,
+  },
+  actionSelected: { backgroundColor: wordColors.green },
 });

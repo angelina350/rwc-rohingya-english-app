@@ -79,7 +79,7 @@ export default function WordPractice() {
         </View>
 
         {!word ? (
-          <ActivityIndicator size="large" color="#FFFFFF" style={styles.loading} />
+          <ActivityIndicator size="large" color={colors.primary} style={styles.loading} />
         ) : (
           <>
             <View style={styles.hero}>
@@ -164,14 +164,13 @@ const styles = StyleSheet.create({
   english: {
     fontSize: fonts.size.xl,
     fontWeight: fonts.weight.bold,
-    color: '#FFFFFF',
+    color: colors.text,
     textAlign: 'center',
   },
   rohingya: {
     fontSize: fonts.size.lg,
     fontWeight: fonts.weight.bold,
-    color: '#FFFFFF',
-    opacity: 0.9,
+    color: colors.textMuted,
     textAlign: 'center',
   },
   hearRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.sm },

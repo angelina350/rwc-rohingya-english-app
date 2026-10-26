@@ -7,7 +7,7 @@ interface Props<T extends string> {
   onChange: (v: T) => void;
 }
 
-/** Glass segmented control for use on the gradient header. */
+/** Segmented control for selecting between compact content views. */
 export function Segmented<T extends string>({ options, value, onChange }: Props<T>) {
   return (
     <View style={styles.wrap}>
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  active: { backgroundColor: '#FFFFFF' },
-  text: { fontSize: fonts.size.sm, fontWeight: fonts.weight.bold, color: '#FFFFFF' },
+  active: { backgroundColor: colors.surface },
+  text: { fontSize: fonts.size.sm, fontWeight: fonts.weight.bold, color: colors.textMuted },
   activeText: { color: colors.primary },
 });

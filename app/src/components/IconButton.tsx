@@ -24,13 +24,11 @@ export function IconButton({
   size = 24,
   variant = 'soft',
 }: Props) {
-  const onGradient = variant === 'glass';
+  const glass = variant === 'glass';
   const filled = variant === 'solid' || (variant === 'soft' && active);
   const iconColor = filled
     ? colors.textOnPrimary
-    : onGradient && !active
-      ? '#FFFFFF'
-      : colors.primary;
+    : colors.primary;
   return (
     <Pressable
       accessibilityRole="button"
@@ -39,12 +37,12 @@ export function IconButton({
       onPress={onPress}
       disabled={disabled}
       hitSlop={6}
-      android_ripple={{ color: 'rgba(255,255,255,0.3)', radius: touch / 2 }}
+      android_ripple={{ color: colors.primarySoft, radius: touch / 2 }}
       style={({ pressed }) => [
         styles.btn,
         variant === 'soft' && styles.soft,
-        onGradient && styles.glass,
-        onGradient && active && styles.glassActive,
+        glass && styles.glass,
+        glass && active && styles.glassActive,
         filled && styles.filled,
         pressed && styles.pressed,
         disabled && styles.disabled,
@@ -65,7 +63,7 @@ const styles = StyleSheet.create({
   },
   soft: { backgroundColor: colors.primarySoft },
   glass: { backgroundColor: colors.glass, borderWidth: 1, borderColor: colors.glassBorder },
-  glassActive: { backgroundColor: '#FFFFFF' },
+  glassActive: { backgroundColor: colors.surface },
   filled: { backgroundColor: colors.primary },
   pressed: { transform: [{ scale: 0.94 }], opacity: 0.9 },
   disabled: { opacity: 0.4 },

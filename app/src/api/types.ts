@@ -30,6 +30,14 @@ export interface TranslateResult {
   audioUrl: string | null;
 }
 
+export interface SavedTranslation {
+  id: string;
+  sourceText: string;
+  translatedText: string;
+  direction: Direction;
+  savedAt: number;
+}
+
 export interface ScenarioTurn {
   id: string;
   role: 'partner' | 'user';

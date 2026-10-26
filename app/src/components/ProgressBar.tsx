@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { colors, radius } from '@/theme';
 
-/** `value` is 0..1. `onGradient` switches to a white-on-glass track. */
+/** `value` is 0..1. `onGradient` remains supported for existing callers. */
 export function ProgressBar({ value, onGradient }: { value: number; onGradient?: boolean }) {
   const pct = Math.max(0, Math.min(1, value)) * 100;
   return (
@@ -11,7 +11,7 @@ export function ProgressBar({ value, onGradient }: { value: number; onGradient?:
       style={[styles.track, onGradient && styles.trackGlass]}
     >
       <View
-        style={[styles.fill, { width: `${pct}%` }, onGradient && { backgroundColor: '#FFFFFF' }]}
+        style={[styles.fill, { width: `${pct}%` }, onGradient && styles.fillOnGradient]}
       />
     </View>
   );
@@ -26,4 +26,5 @@ const styles = StyleSheet.create({
   },
   trackGlass: { backgroundColor: colors.glass },
   fill: { height: '100%', borderRadius: radius.pill, backgroundColor: colors.primary },
+  fillOnGradient: { backgroundColor: colors.accent },
 });

@@ -147,8 +147,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     alignItems: 'flex-start',
   },
-  title: { fontSize: fonts.size.xl, fontWeight: fonts.weight.bold, color: '#FFFFFF' },
-  sub: { fontSize: fonts.size.lg, fontWeight: fonts.weight.bold, color: '#FFFFFF', opacity: 0.9 },
+  title: { fontSize: fonts.size.xl, fontWeight: fonts.weight.regular, color: colors.text },
+  sub: { fontSize: fonts.size.md, color: colors.textMuted },
   list: { padding: spacing.xl, gap: spacing.lg },
   bubble: {
     maxWidth: '85%',
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   partner: { alignSelf: 'flex-start', backgroundColor: colors.primarySoft },
   user: { alignSelf: 'flex-end', backgroundColor: colors.primary },
   bubbleText: { flexShrink: 1, fontSize: fonts.size.md, color: colors.text },
-  userText: { color: '#FFFFFF' },
+  userText: { color: colors.textOnPrimary },
   feedback: {
     gap: spacing.sm,
     padding: spacing.xl,
@@ -193,7 +193,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  completeBtnText: { fontSize: fonts.size.md, fontWeight: fonts.weight.bold, color: '#FFFFFF' },
+  completeBtnText: {
+    fontSize: fonts.size.md,
+    fontWeight: fonts.weight.bold,
+    color: colors.textOnPrimary,
+  },
   micBar: {
     alignItems: 'center',
     paddingTop: spacing.lg,

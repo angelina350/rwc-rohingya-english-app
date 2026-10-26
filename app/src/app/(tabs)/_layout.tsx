@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
+import { router, Tabs } from 'expo-router';
 import type { ColorValue } from 'react-native';
 import { FloatingTabBar } from '@/components/FloatingTabBar';
 import { colors } from '@/theme';
@@ -22,7 +22,13 @@ export default function TabsLayout() {
       />
       <Tabs.Screen
         name="words"
-        options={{ title: 'Words', tabBarIcon: (p) => <TabIcon name="book" {...p} /> }}
+        options={{ title: 'Saved', tabBarIcon: (p) => <TabIcon name="book" {...p} /> }}
+        listeners={() => ({
+          tabPress: (event) => {
+            event.preventDefault();
+            router.navigate('/words');
+          },
+        })}
       />
       <Tabs.Screen
         name="scenario"
