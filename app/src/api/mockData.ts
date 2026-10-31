@@ -1,6 +1,6 @@
 // All content below is MOCK and unvalidated. Rohingya strings are placeholders,
 // not verified translations (see README: data must be marked unvalidated).
-import type { Category, Scenario, ScenarioTurn, Word } from './types';
+import type { Category, QuickPhrase, Scenario, ScenarioTurn, Word } from './types';
 
 // Ids follow the backend spec's categories (+ greetings; Daily Life and Family are on hold).
 export const categories: Category[] = [
@@ -44,6 +44,36 @@ export const words: Word[] = [
   w('word_020', 'greetings', 'Sorry', null),
   w('word_021', 'greetings', 'How are you?', null),
   w('word_022', 'greetings', 'Nice to meet you', null),
+];
+
+const phrase = (id: string, categoryId: string, english: string): QuickPhrase => ({
+  id,
+  categoryId,
+  english,
+  rohingyalish: null,
+  rohingya: null,
+  audioUrl: null,
+});
+
+export const quickPhrases: QuickPhrase[] = [
+  phrase('phrase_healthcare_001', 'healthcare', 'I need to see a doctor.'),
+  phrase('phrase_healthcare_002', 'healthcare', 'Where is the nearest hospital?'),
+  phrase('phrase_healthcare_003', 'healthcare', 'I need some medicine.'),
+  phrase('phrase_education_001', 'education', 'Where is the school office?'),
+  phrase('phrase_education_002', 'education', 'I would like to speak with the teacher.'),
+  phrase('phrase_education_003', 'education', 'When does school start?'),
+  phrase('phrase_housing_001', 'housing', 'Is this apartment available?'),
+  phrase('phrase_housing_002', 'housing', 'How much is the rent?'),
+  phrase('phrase_housing_003', 'housing', 'Something needs to be repaired.'),
+  phrase('phrase_greetings_001', 'greetings', 'Hello, how are you?'),
+  phrase('phrase_greetings_002', 'greetings', 'Thank you very much.'),
+  phrase('phrase_greetings_003', 'greetings', 'It was nice to meet you.'),
+  phrase('phrase_transportation_001', 'transportation', 'Where can I catch the bus?'),
+  phrase('phrase_transportation_002', 'transportation', 'I need a ticket to the city center.'),
+  phrase('phrase_transportation_003', 'transportation', 'How long does the trip take?'),
+  phrase('phrase_employment_001', 'employment', 'I am looking for a job.'),
+  phrase('phrase_employment_002', 'employment', 'What time does my shift start?'),
+  phrase('phrase_employment_003', 'employment', 'Where should I submit my application?'),
 ];
 
 const partner = (id: string, text: string): ScenarioTurn => ({ id, role: 'partner', text });

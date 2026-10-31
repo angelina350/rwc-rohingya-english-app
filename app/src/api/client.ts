@@ -1,11 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { categories, mockOcrText, mockTranslations, scenarios, words } from './mockData';
+import { categories, mockOcrText, mockTranslations, quickPhrases, scenarios, words } from './mockData';
 import type {
   Category,
   Direction,
   PronunciationResult,
   ProgressSummary,
   ProgressUpdate,
+  QuickPhrase,
   Scenario,
   ScenarioFeedback,
   SavedTranslation,
@@ -89,6 +90,9 @@ export const api = {
       150,
     );
   },
+
+  getQuickPhrases: (categoryId?: string): Promise<QuickPhrase[]> =>
+    delay(quickPhrases.filter((phrase) => !categoryId || phrase.categoryId === categoryId), 100),
 
   getWord: (id: string): Promise<Word | null> => delay(words.find((x) => x.id === id) ?? null, 100),
 

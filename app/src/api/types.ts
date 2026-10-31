@@ -20,6 +20,15 @@ export interface Word {
   verification: VerificationStatus;
 }
 
+export interface QuickPhrase {
+  id: string;
+  categoryId: string;
+  english: string;
+  rohingyalish: string | null;
+  rohingya: string | null;
+  audioUrl: string | null;
+}
+
 export interface TranslateResult {
   sourceText: string;
   translatedText: string | null;

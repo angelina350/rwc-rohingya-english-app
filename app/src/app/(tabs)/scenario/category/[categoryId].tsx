@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/api/client';
-import type { Category, Word } from '@/api/types';
+import type { Category, QuickPhrase } from '@/api/types';
 import { BackButton } from '@/components/BackButton';
 import { GradientScreen } from '@/components/GradientScreen';
 import { Sheet } from '@/components/Sheet';
@@ -14,14 +14,13 @@ import { colors, fonts, radius, spacing, TAB_BAR_SPACE } from '@/theme';
 export default function ScenarioCategory() {
   const { categoryId } = useLocalSearchParams<{ categoryId: string }>();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const [category, setCategory] = useState<Category | null>(null);
-  const [phrases, setPhrases] = useState<Word[]>([]);
+  const [phrases, setPhrases] = useState<QuickPhrase[]>([]);
   const play = usePlayAudio();
 
   useEffect(() => {
     api.getCategories().then((all) => setCategory(all.find((c) => c.id === categoryId) ?? null));
-    api.getWords({ categoryId }).then(setPhrases);
+    api.getQuickPhrases(categoryId).then(setPhrases);
   }, [categoryId]);
 
   return (
@@ -34,7 +33,7 @@ export default function ScenarioCategory() {
       <Sheet>
         <FlatList
           data={phrases}
-          keyExtractor={(word) => word.id}
+          keyExtractor={(phrase) => phrase.id}
           contentContainerStyle={[
             styles.list,
             { paddingBottom: insets.bottom + TAB_BAR_SPACE + spacing.xl },
@@ -44,17 +43,12 @@ export default function ScenarioCategory() {
           }
           renderItem={({ item }) => (
             <View style={styles.row}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`Practice ${item.english}`}
-                onPress={() => router.push(`/word/${item.id}`)}
-                style={styles.phrase}
-              >
+              <View style={styles.phrase}>
                 <Text style={styles.name}>{item.english}</Text>
                 <Text style={styles.translation}>
                   {item.rohingya ?? item.rohingyalish ?? 'Translation not available'}
                 </Text>
-              </Pressable>
+              </View>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`Play ${item.english}`}

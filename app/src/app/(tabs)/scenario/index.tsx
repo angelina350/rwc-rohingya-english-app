@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/api/client';
-import type { Category, Word } from '@/api/types';
+import type { Category } from '@/api/types';
 import { categoryIcon } from '@/components/categoryIcon';
 import { GradientScreen } from '@/components/GradientScreen';
 import { Sheet } from '@/components/Sheet';
@@ -15,16 +15,21 @@ export default function ScenarioLanding() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [words, setWords] = useState<Word[]>([]);
+  const [phraseCounts, setPhraseCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     api.getCategories().then(setCategories);
-    api.getWords().then(setWords);
+    api.getQuickPhrases().then((phrases) => {
+      setPhraseCounts(
+        phrases.reduce<Record<string, number>>((counts, phrase) => {
+          counts[phrase.categoryId] = (counts[phrase.categoryId] ?? 0) + 1;
+          return counts;
+        }, {}),
+      );
+    });
   }, []);
 
-  const withPhrases = categories.filter((category) =>
-    words.some((word) => word.categoryId === category.id),
-  );
+  const withPhrases = categories.filter((category) => (phraseCounts[category.id] ?? 0) > 0);
 
   return (
     <GradientScreen>
@@ -42,7 +47,7 @@ export default function ScenarioLanding() {
             { paddingBottom: insets.bottom + TAB_BAR_SPACE + spacing.xl },
           ]}
           renderItem={({ item }) => {
-            const total = words.filter((word) => word.categoryId === item.id).length;
+            const total = phraseCounts[item.id] ?? 0;
             return (
               <Pressable
                 accessibilityRole="button"
