@@ -24,7 +24,7 @@ npx expo start        # press w (web), i (iOS sim), a (Android), or scan the QR 
 | **Speak** `speak` | Tap mic, speak, tap to stop. Shows translation, confidence badge ("Not sure" under 50%), reads English aloud, replays and saves the recording. Swap direction (Rohingya ↔ English). Camera button translates text from a photo (OCR mocked). |
 | **Words** `words` | Dictionary as **Cards** or **Table**. Search by English or Rohingyalish, filter by topic or **Saved**, voice search via mic. Each word: image, audio, Rohingya/English text, save, best score. Tap a word to practice. |
 | **Word practice** `word/[id]` | Hear the English word (normal or slow), say it, get a score, tips and replay. Score is a placeholder, flagged "not validated". |
-| **Scenario** `scenario/…` | Pick a topic → pick a scenario → chat-style practice with a mic and placeholder feedback after each reply. Finishing marks it complete. |
+| **Scenario** `scenario/…` | Browse topic-based quick phrases (including 40 supplied Greetings phrases with translation-verification badges), or practice a chat-style scenario with a mic and placeholder feedback. Finishing marks it complete. |
 | **Learn** `learn` | Overall progress, "Up next" word, saved/scenario/score tiles, per-topic progress that links into Words. |
 
 Topics: Healthcare, Education, Housing, Greetings, Transportation, Employment.
@@ -50,4 +50,5 @@ app/
 ## Notes
 
 - **Mock persistence:** saved words and progress are stored on-device (AsyncStorage) by `api/client.ts`, standing in for `GET/POST /api/progress`. Clear app/site data to reset.
+- **Greetings data:** the supplied Rohingya Greetings Lexicon provides 40 example phrases and 40 headwords for the Greetings learning category. All translations are marked not verified pending native-speaker review; 10 example phrases do not yet have a Rohingya translation.
 - **Swapping in the backend:** replace function bodies in `src/api/client.ts`; screens only call `api.*`.

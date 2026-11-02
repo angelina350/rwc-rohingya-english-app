@@ -45,8 +45,23 @@ export default function ScenarioCategory() {
             <View style={styles.row}>
               <View style={styles.phrase}>
                 <Text style={styles.name}>{item.english}</Text>
+                <Text
+                  accessibilityLabel={
+                    item.verification === 'verified'
+                      ? 'Translation verified'
+                      : 'Translation not verified'
+                  }
+                  style={[
+                    styles.verificationBadge,
+                    item.verification === 'verified'
+                      ? styles.verifiedBadge
+                      : styles.unverifiedBadge,
+                  ]}
+                >
+                  {item.verification === 'verified' ? 'Verified' : 'Not verified'}
+                </Text>
                 <Text style={styles.translation}>
-                  {item.rohingya ?? item.rohingyalish ?? 'Translation not available'}
+                  {item.rohingya ?? item.rohingyalish ?? 'Translation pending'}
                 </Text>
               </View>
               <Pressable
@@ -87,6 +102,16 @@ const styles = StyleSheet.create({
   },
   phrase: { flex: 1, gap: spacing.xs },
   name: { fontSize: fonts.size.md, fontWeight: fonts.weight.bold, color: colors.text },
+  verificationBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+    fontSize: 12,
+    fontWeight: fonts.weight.bold,
+  },
+  verifiedBadge: { color: colors.confidenceHigh, backgroundColor: colors.primarySoft },
+  unverifiedBadge: { color: colors.text, backgroundColor: colors.directionOrangeSoft },
   translation: { fontSize: fonts.size.sm, color: colors.textMuted },
   play: {
     width: 48,

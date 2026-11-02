@@ -137,6 +137,21 @@ export default function LearnScreen() {
               </View>
 
               <Text style={styles.prompt}>Which word matches this picture?</Text>
+              <Text
+                accessibilityLabel={
+                  question.verification === 'verified'
+                    ? 'Translation verified'
+                    : 'Translation not verified'
+                }
+                style={[
+                  styles.verificationBadge,
+                  question.verification === 'verified'
+                    ? styles.verifiedBadge
+                    : styles.unverifiedBadge,
+                ]}
+              >
+                {question.verification === 'verified' ? 'Verified' : 'Not verified'}
+              </Text>
               <View style={styles.options}>
                 {choices.map((choice, index) => {
                   const isCorrect = choice.id === question.id;
@@ -300,6 +315,16 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlign: 'center',
   },
+  verificationBadge: {
+    alignSelf: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.pill,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.bold,
+  },
+  verifiedBadge: { color: colors.confidenceHigh, backgroundColor: colors.primarySoft },
+  unverifiedBadge: { color: colors.text, backgroundColor: colors.directionOrangeSoft },
   options: { gap: spacing.sm },
   option: {
     minHeight: 56,

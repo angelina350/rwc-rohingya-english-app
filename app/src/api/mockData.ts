@@ -1,6 +1,7 @@
-// All content below is MOCK and unvalidated. Rohingya strings are placeholders,
-// not verified translations (see README: data must be marked unvalidated).
+// Existing mock entries below are unvalidated placeholders, not verified translations.
 import type { Category, QuickPhrase, Scenario, ScenarioTurn, Word } from './types';
+import { greetingPhrases } from './greetingsPhrases';
+import { greetingWords } from './greetingsWords';
 
 // Ids follow the backend spec's categories (+ greetings; Daily Life and Family are on hold).
 export const categories: Category[] = [
@@ -27,9 +28,7 @@ export const words: Word[] = [
   w('word_001', 'healthcare', 'Doctor', '[mock] dakhtor'),
   w('word_002', 'healthcare', 'Hospital', '[mock] haspatal'),
   w('word_003', 'healthcare', 'Medicine', '[mock] oshud'),
-  w('word_004', 'greetings', 'Hello', '[mock] salam'),
-  w('word_005', 'greetings', 'Thank you', '[mock] shukria'),
-  w('word_006', 'greetings', 'Goodbye', null),
+  ...greetingWords,
   w('word_007', 'transportation', 'Bus', '[mock] bas'),
   w('word_008', 'transportation', 'Ticket', null),
   w('word_009', 'employment', 'Job', '[mock] kam'),
@@ -38,12 +37,6 @@ export const words: Word[] = [
   w('word_014', 'education', 'Teacher', null),
   w('word_015', 'housing', 'Rent', null),
   w('word_016', 'housing', 'Apartment', null),
-  w('word_017', 'greetings', 'Good morning', null),
-  w('word_018', 'greetings', 'Good evening', null),
-  w('word_019', 'greetings', 'Please', null),
-  w('word_020', 'greetings', 'Sorry', null),
-  w('word_021', 'greetings', 'How are you?', null),
-  w('word_022', 'greetings', 'Nice to meet you', null),
 ];
 
 const phrase = (id: string, categoryId: string, english: string): QuickPhrase => ({
@@ -53,9 +46,11 @@ const phrase = (id: string, categoryId: string, english: string): QuickPhrase =>
   rohingyalish: null,
   rohingya: null,
   audioUrl: null,
+  verification: 'unverified',
 });
 
 export const quickPhrases: QuickPhrase[] = [
+  ...greetingPhrases,
   phrase('phrase_healthcare_001', 'healthcare', 'I need to see a doctor.'),
   phrase('phrase_healthcare_002', 'healthcare', 'Where is the nearest hospital?'),
   phrase('phrase_healthcare_003', 'healthcare', 'I need some medicine.'),
@@ -65,9 +60,6 @@ export const quickPhrases: QuickPhrase[] = [
   phrase('phrase_housing_001', 'housing', 'Is this apartment available?'),
   phrase('phrase_housing_002', 'housing', 'How much is the rent?'),
   phrase('phrase_housing_003', 'housing', 'Something needs to be repaired.'),
-  phrase('phrase_greetings_001', 'greetings', 'Hello, how are you?'),
-  phrase('phrase_greetings_002', 'greetings', 'Thank you very much.'),
-  phrase('phrase_greetings_003', 'greetings', 'It was nice to meet you.'),
   phrase('phrase_transportation_001', 'transportation', 'Where can I catch the bus?'),
   phrase('phrase_transportation_002', 'transportation', 'I need a ticket to the city center.'),
   phrase('phrase_transportation_003', 'transportation', 'How long does the trip take?'),

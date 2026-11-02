@@ -27,6 +27,7 @@ export interface QuickPhrase {
   rohingyalish: string | null;
   rohingya: string | null;
   audioUrl: string | null;
+  verification: 'unverified' | 'verified';
 }
 
 export interface TranslateResult {
