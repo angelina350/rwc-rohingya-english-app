@@ -35,10 +35,18 @@ export default function SpeakScreen() {
   const [recordingUri, setRecordingUri] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [savingTranslation, setSavingTranslation] = useState(false);
-  const { saveTranslation } = useAppState();
+  const { saveTranslation, savedTranslations } = useAppState();
   const { recording, toggle } = useRecorder();
   const play = usePlayAudio();
   const replay = useAudioPlayer(null);
+  const translationSaved =
+    !!result?.translatedText &&
+    savedTranslations.some(
+      (item) =>
+        item.sourceText === result.sourceText &&
+        item.translatedText === result.translatedText &&
+        item.direction === result.direction,
+    );
 
   const speakResult = (r: TranslateResult) => {
     // Read the English side aloud (TTS fallback until backend audio exists).
@@ -90,7 +98,7 @@ export default function SpeakScreen() {
   };
 
   const onSaveTranslation = async () => {
-    if (!result) return;
+    if (!result || translationSaved) return;
     if (!result.translatedText) {
       Alert.alert('Could not save', 'This translation does not have translated text yet.');
       return;
@@ -207,9 +215,10 @@ export default function SpeakScreen() {
                   disabled={!recordingUri}
                 />
                 <ActionButton
-                  name="bookmark-outline"
-                  label="Save translation"
+                  name={translationSaved ? 'bookmark' : 'bookmark-outline'}
+                  label={translationSaved ? 'Translation saved' : 'Save translation'}
                   onPress={onSaveTranslation}
+                  active={translationSaved}
                   disabled={!result.translatedText || savingTranslation}
                 />
               </View>
@@ -254,24 +263,26 @@ function ActionButton({
   name,
   label,
   onPress,
+  active = false,
   disabled = false,
 }: {
   name: React.ComponentProps<typeof Ionicons>['name'];
   label: string;
   onPress: () => void;
+  active?: boolean;
   disabled?: boolean;
 }) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={{ disabled }}
+      accessibilityState={{ disabled, selected: active }}
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [
         styles.actionButton,
         pressed && styles.pressed,
-        disabled && styles.disabled,
+        disabled && !active && styles.disabled,
       ]}
     >
       <Ionicons name={name} size={22} color={colors.primary} />

@@ -68,7 +68,13 @@ export default function LearnScreen() {
 
   return (
     <GradientScreen>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
+      <View
+        style={[
+          styles.header,
+          activeCategory && styles.quizHeader,
+          { paddingTop: insets.top + spacing.lg },
+        ]}
+      >
         {activeCategory ? (
           <Pressable
             accessibilityRole="button"
@@ -80,7 +86,9 @@ export default function LearnScreen() {
             <Text style={styles.backText}>Categories</Text>
           </Pressable>
         ) : null}
-        <Text style={styles.title}>{activeCategory?.name ?? 'Learn'}</Text>
+        <Text style={[styles.title, activeCategory && styles.quizTitle]}>
+          {activeCategory?.name ?? 'Learn'}
+        </Text>
         <Text style={styles.sub}>
           {activeCategory
             ? completed
@@ -132,11 +140,15 @@ export default function LearnScreen() {
                 accessibilityLabel="Blank picture placeholder"
                 style={styles.imagePlaceholder}
               >
-                <Ionicons name="image-outline" size={48} color={colors.primary} />
+                <Ionicons name="image-outline" size={30} color={colors.primary} />
                 <Text style={styles.placeholderText}>Picture coming soon</Text>
               </View>
 
-              <Text style={styles.prompt}>Which word matches this picture?</Text>
+              <Text style={styles.answerRohingya}>
+                {question.rohingya ?? question.rohingyalish ?? 'Rohingya translation pending'}
+              </Text>
+
+              <Text style={styles.prompt}>Choose the matching word</Text>
               <Text
                 accessibilityLabel={
                   question.verification === 'verified'
@@ -187,24 +199,6 @@ export default function LearnScreen() {
 
               {isAnswered ? (
                 <View style={styles.answerArea}>
-                  <View
-                    accessibilityLiveRegion="polite"
-                    style={[
-                      styles.feedback,
-                      selectedWordId === question.id ? styles.correctFeedback : styles.incorrectFeedback,
-                    ]}
-                  >
-                    <Ionicons
-                      name={selectedWordId === question.id ? 'checkmark-circle' : 'information-circle'}
-                      size={22}
-                      color={selectedWordId === question.id ? colors.confidenceHigh : colors.danger}
-                    />
-                    <Text style={styles.feedbackText}>
-                      {selectedWordId === question.id
-                        ? `Correct! The answer is ${question.english}.`
-                        : `Not quite. The correct answer is ${question.english}.`}
-                    </Text>
-                  </View>
                   <Pressable
                     accessibilityRole="button"
                     onPress={advance}
@@ -265,10 +259,12 @@ export default function LearnScreen() {
 
 const styles = StyleSheet.create({
   header: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xl, gap: spacing.sm },
+  quizHeader: { paddingBottom: spacing.sm, gap: spacing.xs },
   title: { fontSize: fonts.size.xl, fontWeight: fonts.weight.regular, color: colors.text },
+  quizTitle: { fontSize: fonts.size.lg },
   sub: { fontSize: fonts.size.md, color: colors.textMuted },
-  back: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.xs },
-  backText: { fontSize: fonts.size.md, color: colors.text },
+  back: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minHeight: 44 },
+  backText: { fontSize: fonts.size.sm, color: colors.text },
   grid: { padding: spacing.md, paddingTop: spacing.xl },
   card: {
     flex: 1,
@@ -295,11 +291,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   categoryMeta: { fontSize: fonts.size.sm, color: colors.textMuted },
-  quizContent: { padding: spacing.xl, gap: spacing.lg },
+  quizContent: { padding: spacing.md, gap: spacing.xs },
   imagePlaceholder: {
-    aspectRatio: 1.35,
+    height: 240,
     width: '100%',
-    borderRadius: radius.lg,
+    borderRadius: radius.md,
     borderWidth: 2,
     borderStyle: 'dashed',
     borderColor: colors.border,
@@ -309,40 +305,46 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   placeholderText: { fontSize: fonts.size.sm, color: colors.textMuted },
+  answerRohingya: {
+    fontSize: fonts.size.md,
+    fontWeight: fonts.weight.bold,
+    color: colors.primary,
+    textAlign: 'center',
+  },
   prompt: {
-    fontSize: fonts.size.lg,
+    fontSize: fonts.size.md,
     fontWeight: fonts.weight.bold,
     color: colors.text,
     textAlign: 'center',
   },
   verificationBadge: {
     alignSelf: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
     borderRadius: radius.pill,
     fontSize: fonts.size.sm,
     fontWeight: fonts.weight.bold,
   },
   verifiedBadge: { color: colors.confidenceHigh, backgroundColor: colors.primarySoft },
   unverifiedBadge: { color: colors.text, backgroundColor: colors.directionOrangeSoft },
-  options: { gap: spacing.sm },
+  options: { gap: spacing.xs },
   option: {
-    minHeight: 56,
+    minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
   optionLetter: {
-    width: 30,
-    height: 30,
-    lineHeight: 30,
-    borderRadius: 15,
+    width: 28,
+    height: 28,
+    lineHeight: 28,
+    borderRadius: 14,
     overflow: 'hidden',
     backgroundColor: colors.primarySoft,
     color: colors.primary,
@@ -355,16 +357,6 @@ const styles = StyleSheet.create({
   incorrectOption: { borderColor: colors.danger, backgroundColor: colors.recordingSoft },
   pressed: { opacity: 0.88 },
   answerArea: { gap: spacing.md },
-  feedback: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    padding: spacing.md,
-    borderRadius: radius.md,
-  },
-  correctFeedback: { backgroundColor: '#EFF9F4' },
-  incorrectFeedback: { backgroundColor: colors.recordingSoft },
-  feedbackText: { flex: 1, color: colors.text, fontSize: fonts.size.md, fontWeight: fonts.weight.bold },
   primaryButton: {
     minHeight: 56,
     flexDirection: 'row',
