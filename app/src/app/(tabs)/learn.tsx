@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +9,31 @@ import { categoryIcon } from '@/components/categoryIcon';
 import { GradientScreen } from '@/components/GradientScreen';
 import { Sheet } from '@/components/Sheet';
 import { colors, fonts, radius, shadow, spacing, TAB_BAR_SPACE } from '@/theme';
+
+function QuestionPicture({ word }: { word: Word }) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  if (word.imageUrl && !imageFailed) {
+    return (
+      <View style={styles.questionImageFrame}>
+        <Image
+          accessibilityLabel={`${word.english} illustration`}
+          contentFit="contain"
+          onError={() => setImageFailed(true)}
+          source={{ uri: word.imageUrl }}
+          style={styles.questionImage}
+        />
+      </View>
+    );
+  }
+
+  return (
+    <View accessibilityLabel="Picture coming soon" style={styles.imagePlaceholder}>
+      <Ionicons name="image-outline" size={30} color={colors.primary} />
+      <Text style={styles.placeholderText}>Picture coming soon</Text>
+    </View>
+  );
+}
 
 export default function LearnScreen() {
   const insets = useSafeAreaInsets();
@@ -33,10 +59,15 @@ export default function LearnScreen() {
   const question = categoryWords[questionIndex] ?? null;
   const otherWords = question ? words.filter((word) => word.id !== question.id) : [];
   const distractors = question
-    ? Array.from({ length: 3 }, (_, index) => otherWords[(questionIndex * 3 + index) % otherWords.length])
+    ? Array.from(
+        { length: 3 },
+        (_, index) => otherWords[(questionIndex * 3 + index) % otherWords.length],
+      )
     : [];
   const choices = question
-    ? [...distractors, question].slice(questionIndex % 4).concat([...distractors, question].slice(0, questionIndex % 4))
+    ? [...distractors, question]
+        .slice(questionIndex % 4)
+        .concat([...distractors, question].slice(0, questionIndex % 4))
     : [];
   const withWords = categories.filter((category) =>
     words.some((word) => word.categoryId === category.id),
@@ -101,7 +132,9 @@ export default function LearnScreen() {
       <Sheet>
         {loadError ? (
           <View style={styles.messageWrap}>
-            <Text style={styles.empty}>We couldn’t load the learning activities. Please try again.</Text>
+            <Text style={styles.empty}>
+              We couldn’t load the learning activities. Please try again.
+            </Text>
           </View>
         ) : activeCategory ? (
           completed ? (
@@ -111,8 +144,8 @@ export default function LearnScreen() {
               </View>
               <Text style={styles.completionTitle}>Great work!</Text>
               <Text style={styles.completionText}>
-                You practiced all {categoryWords.length} {categoryWords.length === 1 ? 'word' : 'words'} in{' '}
-                {activeCategory.name}.
+                You practiced all {categoryWords.length}{' '}
+                {categoryWords.length === 1 ? 'word' : 'words'} in {activeCategory.name}.
               </Text>
               <Pressable
                 accessibilityRole="button"
@@ -136,13 +169,7 @@ export default function LearnScreen() {
                 { paddingBottom: insets.bottom + TAB_BAR_SPACE + spacing.xl },
               ]}
             >
-              <View
-                accessibilityLabel="Blank picture placeholder"
-                style={styles.imagePlaceholder}
-              >
-                <Ionicons name="image-outline" size={30} color={colors.primary} />
-                <Text style={styles.placeholderText}>Picture coming soon</Text>
-              </View>
+              <QuestionPicture key={question.id} word={question} />
 
               <Text style={styles.answerRohingya}>
                 {question.rohingya ?? question.rohingyalish ?? 'Rohingya translation pending'}
@@ -205,7 +232,9 @@ export default function LearnScreen() {
                     style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
                   >
                     <Text style={styles.primaryButtonText}>
-                      {questionIndex + 1 === categoryWords.length ? 'Finish practice' : 'Next question'}
+                      {questionIndex + 1 === categoryWords.length
+                        ? 'Finish practice'
+                        : 'Next question'}
                     </Text>
                     <Ionicons name="arrow-forward" size={20} color={colors.textOnPrimary} />
                   </Pressable>
@@ -228,7 +257,9 @@ export default function LearnScreen() {
             ]}
             ListEmptyComponent={
               <Text style={styles.empty}>
-                {categories.length ? 'No learning categories are available yet.' : 'Loading categories…'}
+                {categories.length
+                  ? 'No learning categories are available yet.'
+                  : 'Loading categories…'}
               </Text>
             }
             renderItem={({ item }) => {
@@ -304,6 +335,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.sm,
   },
+  questionImageFrame: {
+    height: 240,
+    width: '100%',
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    overflow: 'hidden',
+  },
+  questionImage: { width: '100%', height: '100%' },
   placeholderText: { fontSize: fonts.size.sm, color: colors.textMuted },
   answerRohingya: {
     fontSize: fonts.size.md,
@@ -352,7 +391,12 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weight.bold,
     textAlign: 'center',
   },
-  optionText: { flex: 1, color: colors.text, fontSize: fonts.size.md, fontWeight: fonts.weight.bold },
+  optionText: {
+    flex: 1,
+    color: colors.text,
+    fontSize: fonts.size.md,
+    fontWeight: fonts.weight.bold,
+  },
   correctOption: { borderColor: colors.confidenceHigh, backgroundColor: '#EFF9F4' },
   incorrectOption: { borderColor: colors.danger, backgroundColor: colors.recordingSoft },
   pressed: { opacity: 0.88 },
@@ -368,9 +412,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     ...shadow.card,
   },
-  primaryButtonText: { color: colors.textOnPrimary, fontSize: fonts.size.md, fontWeight: fonts.weight.bold },
+  primaryButtonText: {
+    color: colors.textOnPrimary,
+    fontSize: fonts.size.md,
+    fontWeight: fonts.weight.bold,
+  },
   secondaryButton: { minHeight: 52, alignItems: 'center', justifyContent: 'center' },
-  secondaryButtonText: { color: colors.primary, fontSize: fonts.size.md, fontWeight: fonts.weight.bold },
+  secondaryButtonText: {
+    color: colors.primary,
+    fontSize: fonts.size.md,
+    fontWeight: fonts.weight.bold,
+  },
   completion: {
     flex: 1,
     alignItems: 'center',
