@@ -40,6 +40,16 @@ export interface TranslateResult {
   audioUrl: string | null;
 }
 
+export type SpeechFailureReason =
+  'no_speech' | 'background_noise' | 'recording_too_short' | 'confidence_too_low';
+
+export interface SpeechTranslationFailure {
+  status: 'failed';
+  reason: SpeechFailureReason;
+}
+
+export type SpeechTranslationResult = TranslateResult | SpeechTranslationFailure;
+
 export interface SavedTranslation {
   id: string;
   sourceText: string;

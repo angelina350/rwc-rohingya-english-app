@@ -14,8 +14,13 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { api } from '@/api/client';
-import type { Direction, TranslateResult } from '@/api/types';
-import { ConfidenceBadge, LOW_CONFIDENCE } from '@/components/ConfidenceBadge';
+import type {
+  Direction,
+  SpeechFailureReason,
+  SpeechTranslationResult,
+  TranslateResult,
+} from '@/api/types';
+import { ConfidenceBadge } from '@/components/ConfidenceBadge';
 import { MicButton } from '@/components/MicButton';
 import { useAppState } from '@/state/AppState';
 import { usePlayAudio } from '@/hooks/usePlayAudio';
@@ -28,15 +33,28 @@ const LABELS: Record<Direction, [string, string]> = {
   'en-rhg': ['English', 'Rohingya'],
 };
 
+const REPEAT_PROMPT_CONFIDENCE = 0.4;
+const ERROR_CONFIDENCE_PERCENT = 1;
+const MIN_RECORDING_DURATION_MS = 500;
+
+const SPEECH_FAILURE_MESSAGES: Record<SpeechFailureReason, string> = {
+  no_speech: 'No voice was detected. Please say that again.',
+  background_noise: 'Too much background noise was detected. Move somewhere quieter and try again.',
+  recording_too_short:
+    'The recording was shorter than 0.5 seconds. Please record longer and try again.',
+  confidence_too_low: 'We could not provide a reliable translation. Please say that again.',
+};
+
 export default function SpeakScreen() {
   const insets = useSafeAreaInsets();
   const [direction, setDirection] = useState<Direction>('rhg-en');
   const [result, setResult] = useState<TranslateResult | null>(null);
+  const [speechFailure, setSpeechFailure] = useState<SpeechFailureReason | null>(null);
   const [recordingUri, setRecordingUri] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [savingTranslation, setSavingTranslation] = useState(false);
   const { saveTranslation, savedTranslations } = useAppState();
-  const { recording, toggle } = useRecorder();
+  const { recording, toggleWithDuration } = useRecorder();
   const play = usePlayAudio();
   const replay = useAudioPlayer(null);
   const translationSaved =
@@ -54,13 +72,25 @@ export default function SpeakScreen() {
     play({ url: r.direction === 'rhg-en' ? r.audioUrl : null, fallbackText: english ?? undefined });
   };
 
-  const run = async (job: () => Promise<TranslateResult>) => {
+  const run = async (job: () => Promise<SpeechTranslationResult>) => {
     setBusy(true);
+    setSpeechFailure(null);
     try {
       const r = await job();
+      if (r.status === 'failed') {
+        setResult(null);
+        setSpeechFailure(r.reason);
+        return;
+      }
+      if (Math.round(r.confidence * 100) <= ERROR_CONFIDENCE_PERCENT) {
+        setResult(null);
+        setSpeechFailure('confidence_too_low');
+        return;
+      }
       setResult(r);
       speakResult(r);
     } catch {
+      setResult(null);
       Alert.alert('Translation failed', 'Check your connection and try again.');
     } finally {
       setBusy(false);
@@ -68,10 +98,19 @@ export default function SpeakScreen() {
   };
 
   const onMic = async () => {
-    const uri = await toggle();
-    if (!uri) return;
-    setRecordingUri(uri);
-    await run(() => api.translateSpeech(uri, direction));
+    if (!recording) {
+      setSpeechFailure(null);
+      setResult(null);
+    }
+    const audio = await toggleWithDuration();
+    if (!audio) return;
+    setRecordingUri(audio.uri);
+    if (audio.durationMillis < MIN_RECORDING_DURATION_MS) {
+      setResult(null);
+      setSpeechFailure('recording_too_short');
+      return;
+    }
+    await run(() => api.translateSpeech(audio.uri, direction));
   };
 
   const onCamera = async () => {
@@ -118,6 +157,7 @@ export default function SpeakScreen() {
   const swap = () => {
     setDirection((d) => (d === 'rhg-en' ? 'en-rhg' : 'rhg-en'));
     setResult(null);
+    setSpeechFailure(null);
   };
 
   const [from, to] = LABELS[direction];
@@ -148,12 +188,7 @@ export default function SpeakScreen() {
         <View style={styles.languageRow}>
           <View style={styles.languageSelector}>
             <View style={styles.languageSide}>
-              <View
-                style={[
-                  styles.languageDot,
-                  { backgroundColor: dotColor },
-                ]}
-              />
+              <View style={[styles.languageDot, { backgroundColor: dotColor }]} />
               <Text style={styles.language}>{from}</Text>
             </View>
             <Pressable
@@ -194,12 +229,10 @@ export default function SpeakScreen() {
               <Text style={styles.source}>{result.sourceText}</Text>
               <Text style={styles.translated}>{result.translatedText ?? 'No translation yet'}</Text>
               <ConfidenceBadge value={result.confidence} />
-              {result.confidence < LOW_CONFIDENCE && (
+              {result.confidence < REPEAT_PROMPT_CONFIDENCE && (
                 <View style={styles.notSure}>
                   <Ionicons name="alert-circle" size={22} color={colors.accent} />
-                  <Text style={styles.notSureText}>
-                    Not sure. Try again or ask someone to help.
-                  </Text>
+                  <Text style={styles.notSureText}>Not sure. Please say that again.</Text>
                 </View>
               )}
               <View style={styles.actions}>
@@ -222,6 +255,15 @@ export default function SpeakScreen() {
                   disabled={!result.translatedText || savingTranslation}
                 />
               </View>
+            </View>
+          )}
+          {!busy && speechFailure && (
+            <View style={styles.errorResult}>
+              <View style={styles.errorHeading}>
+                <Ionicons name="alert-circle" size={24} color={colors.accent} />
+                <Text style={styles.errorTitle}>Translation unavailable</Text>
+              </View>
+              <Text style={styles.notSureText}>{SPEECH_FAILURE_MESSAGES[speechFailure]}</Text>
             </View>
           )}
 
@@ -374,6 +416,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     ...shadow.card,
   },
+  errorResult: {
+    gap: spacing.md,
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    ...shadow.card,
+  },
+  errorHeading: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  errorTitle: { fontSize: fonts.size.md, fontWeight: fonts.weight.bold, color: colors.text },
   source: {
     fontSize: fonts.size.md,
     color: colors.textMuted,

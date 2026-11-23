@@ -1,5 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { categories, mockOcrText, mockTranslations, quickPhrases, scenarios, words } from './mockData';
+import {
+  categories,
+  mockOcrText,
+  mockTranslations,
+  quickPhrases,
+  scenarios,
+  words,
+} from './mockData';
 import type {
   Category,
   Direction,
@@ -10,6 +17,7 @@ import type {
   Scenario,
   ScenarioFeedback,
   SavedTranslation,
+  SpeechTranslationResult,
   TranslateResult,
   Word,
 } from './types';
@@ -24,6 +32,8 @@ import type {
  */
 const delay = <T>(value: T, ms = 300): Promise<T> =>
   new Promise((resolve) => setTimeout(() => resolve(value), ms));
+
+const MOCK_SPEECH_ERROR_RATE = 0.15;
 
 interface Db {
   saved: string[];
@@ -44,8 +54,9 @@ const emptyDb = (): Db => ({
 
 let dbPromise: Promise<Db> | null = null;
 const loadDb = (): Promise<Db> =>
-  (dbPromise ??= AsyncStorage.getItem(DB_KEY)
-    .then((raw): Db => (raw ? { ...emptyDb(), ...JSON.parse(raw) } : emptyDb())));
+  (dbPromise ??= AsyncStorage.getItem(DB_KEY).then((raw): Db =>
+    raw ? { ...emptyDb(), ...JSON.parse(raw) } : emptyDb(),
+  ));
 const persist = (db: Db) => AsyncStorage.setItem(DB_KEY, JSON.stringify(db));
 
 function summarize(db: Db): ProgressSummary {
@@ -92,16 +103,30 @@ export const api = {
   },
 
   getQuickPhrases: (categoryId?: string): Promise<QuickPhrase[]> =>
-    delay(quickPhrases.filter((phrase) => !categoryId || phrase.categoryId === categoryId), 100),
+    delay(
+      quickPhrases.filter((phrase) => !categoryId || phrase.categoryId === categoryId),
+      100,
+    ),
 
   getWord: (id: string): Promise<Word | null> => delay(words.find((x) => x.id === id) ?? null, 100),
 
   /** Voice search: pretend we transcribed a word and return the best match. */
   searchWordByVoice: (_audioUri: string): Promise<Word[]> => delay([words[0]], 600),
 
-  /** Speech translation. `audioUri` is the user's recording. */
-  translateSpeech: (_audioUri: string, direction: Direction): Promise<TranslateResult> =>
-    delay(
+  /** Speech translation mock includes occasional detection failures for UI testing. */
+  translateSpeech: (_audioUri: string, direction: Direction): Promise<SpeechTranslationResult> => {
+    const errorRoll = Math.random();
+    if (errorRoll < MOCK_SPEECH_ERROR_RATE) {
+      return delay(
+        {
+          status: 'failed',
+          reason: errorRoll < MOCK_SPEECH_ERROR_RATE / 2 ? 'no_speech' : 'background_noise',
+        },
+        900,
+      );
+    }
+
+    return delay(
       {
         sourceText: direction === 'rhg-en' ? '[mock] Rohingya speech' : 'I need a doctor.',
         translatedText: mockTranslations[direction],
@@ -111,7 +136,8 @@ export const api = {
         audioUrl: null,
       },
       900,
-    ),
+    );
+  },
 
   /** Camera/photo translation (OCR mocked). */
   translateImage: (_imageUri: string, direction: Direction): Promise<TranslateResult> =>
@@ -120,7 +146,7 @@ export const api = {
         sourceText: mockOcrText,
         translatedText: mockTranslations['en-rhg'],
         direction,
-        confidence: 0.7,
+        confidence: Math.random(),
         status: 'translated',
         audioUrl: null,
       },
